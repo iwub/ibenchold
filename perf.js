@@ -4,7 +4,7 @@ var fs = require('fs');
 
 var ADB = "/automount/suntools/Ubuntu/adb";
 var TMP_FILE = "/tmp/~camLaunchLog.txt";
-var VERBOSE = true;
+var VERBOSE = false;
 
 var LAUNCH_COUNT = 5;
 var TOGGLE_COUNT = 3;
@@ -47,7 +47,8 @@ function perform_iteration(cmd1, cmd2, lat1, lat2, count, cb){
 		}
 		else{
 			cb(TMP_FILE);
-			process.exit();
+			var child = cp.exec(cmdExitCameraHard);
+			child.on('exit', function(){process.exit()});
 		}
 
 	}, lat2);
@@ -122,7 +123,7 @@ function parse_log(path, token1, token2, label){
 	while(start_log.length>0 || end_log.length>0){
 		if(on_start){
 			//trim end
-			while(start_log[0]<end_log[0] && end_log.length>0){
+			while(start_log[0]>end_log[0] && end_log.length>0){
 				end_log.shift();
 			}
 
@@ -138,13 +139,13 @@ function parse_log(path, token1, token2, label){
 		}
 		else{
 			//trim start
-			while(start_log[0]<end_log[0] && end_log.length>0){
+			while(start_log[0]<end_log[0] && start_log.length>0){
 				start_log.shift();
 			}
 
-			//trim start
-			while(start_log.length>2 && start_log[1] < end_log[0]){
-				start_log.shift()
+			//trim end
+			while(end_log.length>2 && end_log[1] < start_log[0]){
+				end_log.shift()
 			}
 
 			if(end_log.length>0){
@@ -155,13 +156,13 @@ function parse_log(path, token1, token2, label){
 	}
 
 	if (VERBOSE){
-		console.log(start_log);
-		console.log(end_log);
+		console.log(r_start_log);
+		console.log(r_end_log);
 	}
 
 	console.log(label)
-	end_log.forEach(function(v,i,a){
-		console.log((end_log[i] - start_log[i]) + ' ms');
+	r_end_log.forEach(function(v,i,a){
+		console.log((r_end_log[i] - r_start_log[i]) + ' ms');
 	});
 }
 
@@ -239,7 +240,24 @@ function profile_mode(){
 	})	
 }
 
-//profile_launch_speed(false);
-//profile_take_picture();
-profile_toggle();
-//profile_mode();
+(function main(cmd){
+	if(cmd.indexOf('cold_start') >= 0){
+		profile_launch_speed(true);
+	}
+	else if(cmd.indexOf('warm_start') >= 0){
+		profile_launch_speed(false);
+	}
+	else if(cmd.indexOf('capture') >= 0){
+		profile_take_picture();
+	}
+	else if(cmd.indexOf('toggle') >= 0){
+		profile_toggle();
+	}
+	else if(cmd.indexOf('switch') >= 0){
+		profile_mode();
+	}
+	else{
+		console.log('--Usage--');
+		console.log('node perf.js [cold_start|warm_start|capture|toggle|switch]');			
+	}
+})(process.argv[2]);
