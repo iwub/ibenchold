@@ -6,6 +6,7 @@ var fs = require('fs');
 var ADB = "/automount/suntools/Ubuntu/adb";
 var TMP_FILE = "/tmp/~camLaunchLog.txt";
 var cmdClearLog = "rm -rf "+TMP_FILE;
+var APK_PKG = 'com.tct.camera';
 
 var ADB_WIN = "adb.exe";
 var TMP_FILE_WIN = 'D:/camLaunchLog.txt';
@@ -47,7 +48,6 @@ function check_baseline(cb){
 	check_property("Baseline", "gsm.version.baseband", cb);
 }
 
-
 function check_hw(cb){
 	check_property("Hardware", "ro.def.hardware.version", cb);
 }
@@ -58,6 +58,23 @@ function check_sw(cb){
 
 function check_perf(cb){
 	check_property("KernelBuild", "ro.tct.kernelconfig", cb);
+}
+
+function check_apk(cb){
+	var cmd = ADB+" shell pm dump "+APK_PKG+">"+TMP_FILE;
+	cp.exec(cmd).on('exit',function(){
+		var content = fs.readFileSync(TMP_FILE).toString();
+		content = content.split("\r\n");
+		var versionNo = "";
+		content.forEach(function(v,i,a){
+			if(v.indexOf('versionName') >= 0){
+				var regex = new RegExp("versionName=")
+				var res = v.match(/versionName=(\S+)/);
+				versionNo = res[1];
+			}
+		});
+		cb(APK_PKG, versionNo);
+	})	
 }
 
 
@@ -196,7 +213,7 @@ function check_camera_app(){
 	console.log("");
 	console.log("-----Camera App-----");
 
-	var startCamera = ADB+" shell am start com.tct.camera";
+	var startCamera = ADB+" shell am start "+APK_PKG;
 	cp.exec(startCamera).on('exit', function(){ //start camera
 		setTimeout(function(){
 			var paramDump = ADB+" shell dumpsys media.camera >"+TMP_FILE;
@@ -247,7 +264,8 @@ var CHECK_LIST_MAIN = [
 	check_baseline,
 	check_hw,
 	check_sw,
-	check_perf
+	check_perf,
+	check_apk
 ];
 
 var CHECK_LIST_CAMERA_APP = [
