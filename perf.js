@@ -250,7 +250,7 @@ function profile_take_picture(){
 function profile_toggle(){
 	start_test(function(){
 		cp.exec(cmdLaunchCamera);
-		setTimeout(perform_mode_switch, 3000);
+		setTimeout(perform_toggle_back_front, 3000);
 	});	
 }
 
