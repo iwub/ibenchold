@@ -1,12 +1,25 @@
+var os = require('os');
 var cp = require('child_process'); 
 var process = require('process');
 var fs = require('fs');
 
 var ADB = "/automount/suntools/Ubuntu/adb";
 var TMP_FILE = "/tmp/~camLaunchLog.txt";
+var cmdClearLog = "rm -rf "+TMP_FILE;
+
+var ADB_WIN = "adb.exe";
+var TMP_FILE_WIN = 'D:/camLaunchLog.txt';
+var cmdClearLog_WIN = "del "+TMP_FILE;
+
+if(os.type().indexOf('Windows') >= 0){
+	ADB = ADB_WIN;
+	TMP_FILE = TMP_FILE_WIN;
+	cmdClearLog = cmdClearLog_WIN;
+}
+
 var VERBOSE = false;
 
-var LAUNCH_COUNT = 5;
+var LAUNCH_COUNT = 3;
 var TOGGLE_COUNT = 3;
 var TAKE_PICTURE_COUNT = 5;
 var SWITCH_MODE_COUNT = 5;
@@ -24,14 +37,16 @@ var CAMERA_PREVIEW_STOP_TOKEN = 'PROFILE_STOP_PREVIEW'
 var cmdLaunchCamera = ADB+" shell am start com.tct.camera";
 var cmdExitCameraSoft = ADB+" shell am start com.tct.launcher/.Launcher";
 var cmdExitCameraHard = ADB+" shell am force-stop com.tct.camera";
-var cmdStartLog = ADB+" logcat -v threadtime | tee "+TMP_FILE;
-var cmdClearLog = "rm -rf "+TMP_FILE+";"+ADB+" logcat -c";
+var cmdStartLog = ADB+" logcat -v threadtime >"+TMP_FILE;
+
+var cmdClearLogcat = ADB+" logcat -c";
 
 var cmdTakePicture = ADB+" shell input keyevent 24";
 var cmdToggle = ADB+" shell input tap 935 135";
 var cmdSwipeRight = ADB+" shell input swipe 500 100 0 100";
 var cmdSwipeLeft = ADB+" shell input swipe 0 100 500 100";
 
+var gLogP;
 
 function perform_iteration(cmd1, cmd2, lat1, lat2, count, cb){
 	cp.exec(cmd1);
@@ -46,9 +61,11 @@ function perform_iteration(cmd1, cmd2, lat1, lat2, count, cb){
 			setTimeout(function(){perform_iteration(cmd1, cmd2, lat1, lat2, count, cb);}, lat1);
 		}
 		else{
-			cb(TMP_FILE);
-			var child = cp.exec(cmdExitCameraHard);
-			child.on('exit', function(){process.exit()});
+			setTimeout(function(){
+				cb(TMP_FILE);
+				var child = cp.exec(cmdExitCameraHard);
+				child.on('exit', function(){process.exit()});				
+			},2000);
 		}
 
 	}, lat2);
@@ -100,6 +117,8 @@ function parse_log(path, token1, token2, label){
 	var lines = content.toString().split("\r\n");
 	var start_log = [];
 	var end_log = [];
+
+	end_test();
 
 	lines.forEach(function(v,i,a){
 		if(v.indexOf(token1) > 0){
@@ -160,10 +179,14 @@ function parse_log(path, token1, token2, label){
 		console.log(r_end_log);
 	}
 
-	console.log(label)
+	console.log(label);
+	var total = 0;
 	r_end_log.forEach(function(v,i,a){
 		console.log((r_end_log[i] - r_start_log[i]) + ' ms');
+		total += r_end_log[i] - r_start_log[i];
 	});
+
+	console.log('Average: '+Math.round(total/r_end_log.length)+" ms")
 }
 
 function parse_launch_time(path){
@@ -198,49 +221,49 @@ function parse_mode(path){
 		"--Time For Switch Mode--");
 }
 
-function profile_launch_speed(hard){
-	var clearTask = cp.exec(cmdClearLog);
+function start_test(callback){
+	cp.exec(cmdClearLog).on('exit', function(){ //Clear log
+		cp.exec(cmdClearLogcat).on('exit', function(){ //Clear logcat
+			gLogP = cp.exec(cmdStartLog);
+			callback();
+		});
+	})		
+}
 
-	clearTask.on('exit', function(){
-		cp.exec(cmdStartLog);
+function end_test(){
+	gLogP.kill('SIGTERM');
+}
+
+function profile_launch_speed(hard){
+	start_test(function(){
 		perform_launch_iteration(hard);
-	})
+	});
 };
 
 function profile_take_picture(){
-	var clearTask = cp.exec(cmdClearLog);
-
-	clearTask.on('exit', function(){
-		cp.exec(cmdStartLog);
+	start_test(function(){
 		cp.exec(cmdLaunchCamera);
-
-		setTimeout(perform_take_picture, 4000);
-	})
+		setTimeout(perform_take_picture, 3000);
+	});
 }
 
 function profile_toggle(){
-	var clearTask = cp.exec(cmdClearLog);
-
-	clearTask.on('exit', function(){
-		cp.exec(cmdStartLog);
+	start_test(function(){
 		cp.exec(cmdLaunchCamera);
-
-		setTimeout(perform_toggle_back_front, 4000);
-	})	
+		setTimeout(perform_mode_switch, 3000);
+	});	
 }
 
 function profile_mode(){
-	var clearTask = cp.exec(cmdClearLog);
-
-	clearTask.on('exit', function(){
-		cp.exec(cmdStartLog);
+	start_test(function(){
 		cp.exec(cmdLaunchCamera);
-
-		setTimeout(perform_mode_switch, 4000);
-	})	
+		setTimeout(perform_mode_switch, 3000);
+	});	
 }
 
 (function main(cmd){
+
+
 	if(cmd.indexOf('cold_start') >= 0){
 		profile_launch_speed(true);
 	}
