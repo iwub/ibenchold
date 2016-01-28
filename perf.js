@@ -113,6 +113,9 @@ function perform_mode_switch(){
 }
 
 function parse_log(path, token1, token2, label){
+	if (VERBOSE){
+		console.log("Start log parsing...");
+	}
 	var content = fs.readFileSync(path);
 	var lines = content.toString().split("\r\n");
 	var start_log = [];
@@ -120,17 +123,27 @@ function parse_log(path, token1, token2, label){
 
 	end_test();
 
+	if (VERBOSE){
+		console.log("Total line of log: "+lines.length);
+	}
+
 	lines.forEach(function(v,i,a){
 		if(v.indexOf(token1) > 0){
 			var time = v.match(/ (\d{2}):(\d{2}):(\d{2}).(\d{3}) /);
 			var curr_time = parseInt(time[1])*60*60*1000+parseInt(time[2])*60*1000+parseInt(time[3])*1000+parseInt(time[4]);
 			//console.log(time);
+			if(VERBOSE){
+				console.log("Find start log at line "+i);
+			}
 			start_log.push(curr_time);
 		}	
 		else if(v.indexOf(token2) > 0){
 			var time = v.match(/ (\d{2}):(\d{2}):(\d{2}).(\d{3}) /);
 			var curr_time = parseInt(time[1])*60*60*1000+parseInt(time[2])*60*1000+parseInt(time[3])*1000+parseInt(time[4]);
 			//console.log(time);
+			if(VERBOSE){
+				console.log("Find end log at line"+i);
+			}
 			end_log.push(curr_time);
 		}
 	});
@@ -139,7 +152,7 @@ function parse_log(path, token1, token2, label){
 	var r_end_log = [];
 	var on_start = true;
 
-	while(start_log.length>0 || end_log.length>0){
+	while(start_log.length>0 && end_log.length>0){
 		if(on_start){
 			//trim end
 			while(start_log[0]>end_log[0] && end_log.length>0){
