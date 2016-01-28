@@ -16,28 +16,89 @@ if(os.type().indexOf('Windows') >= 0){
 	TMP_FILE = TMP_FILE_WIN;
 }
 
+var VERBOSE = false;
 
 var cmd_helper = {};
 
-cmd_helper.adb = function(cmd){
+cmd_helper._adb = function(cmd){
 	return cp.exec(ADB+" "+cmd);
 }
 
-cmd_helper.adbLog = function(file){
-	return cp.exec(ADB+" logcat -v threadtime>"+file);
+cmd_helper._cmd = function(cmd){
+	return cp.exec(cmd);
 }
 
-cmd_helper.adbclear = function(){
+cmd_helper._adbLog = function(){
+	return cp.exec(ADB+" logcat -v threadtime>"+TMP_FILE);
+}
+
+cmd_helper._adbclear = function(){
 	return cp.exec(ADB+" logcat -c");
 }
 
-cmd_helper.rmFile = function(file){
+cmd_helper._rmFile = function(){
 	if(os.type().indexOf('Windows') >= 0){
-		return cp.exec("del "+file);
+		return cp.exec("del "+TMP_FILE);
 	}
 	else {
-		return cp.exec("rm "+file);
+		return cp.exec("rm "+TMP_FILE);
 	}
+}
+
+cmd_helper._process = function(){
+
+	if (this._CMDS && this._CMDS.length){
+
+		var cmd = this._CMDS.shift();
+		var curr_obj = this;
+
+		if(VERBOSE){
+			console.log("Command Execute: "+JSON.stringify(cmd));
+			console.log("Remaining cmd:"+this._CMDS.length);
+		}
+
+		if(cmd.type.indexOf('adb')>=0){
+			this._adb(cmd.value).on('exit', function(){
+				setTimeout(function(){curr_obj._process()}, cmd.delay?cmd.delay:0);
+			});
+		}
+		else if(cmd.type.indexOf('cmd')>=0){
+			this._cmd(cmd.value).on('exit', function(){
+				setTimeout(function(){curr_obj._process()}, cmd.delay?cmd.delay:0);
+			});
+		}
+		else if(cmd.type.indexOf('adb_clear')>=0){
+			this._adbclear().on('exit', function(){
+				setTimeout(function(){curr_obj._process()}, cmd.delay?cmd.delay:0);
+			});
+		}
+		else if(cmd.type.indexOf('adb_log')>=0){
+			this._adbLog().on('exit', function(){
+				setTimeout(function(){curr_obj._process()}, cmd.delay?cmd.delay:0);
+			});
+		}
+		else if(cmd.type.indexOf('clear_log')>=0){
+			this._rmFile().on('exit', function(){
+				setTimeout(function(){curr_obj._process()}, cmd.delay?cmd.delay:0);
+			});
+		}
+		else{
+			console.log("Unknow command:"+cmd.type);
+			this._process();
+		}
+
+	}
+	else if(typeof(this._CB) == 'function'){
+		this._CB();
+		this._CB = undefined;
+	}
+}
+
+cmd_helper.process = function(cmds, cb){
+	this._CB = cb;
+	this._CMDS = cmds;
+
+	this._process();
 }
 
 module.exports = cmd_helper;

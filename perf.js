@@ -22,7 +22,7 @@ var VERBOSE = false;
 var LAUNCH_COUNT = 3;
 var TOGGLE_COUNT = 3;
 var TAKE_PICTURE_COUNT = 5;
-var SWITCH_MODE_COUNT = 5;
+var SWITCH_MODE_COUNT = 3;
 
 var CAMERA_OPEN_START_TOKEN = 'E PROFILE_OPEN_CAMERA';
 var CAEMRA_OPEN_END_TOKEN = 'PROFILE_FIRST_PREVIEW_FRAME';
@@ -43,8 +43,8 @@ var cmdClearLogcat = ADB+" logcat -c";
 
 var cmdTakePicture = ADB+" shell input keyevent 24";
 var cmdToggle = ADB+" shell input tap 935 135";
-var cmdSwipeRight = ADB+" shell input swipe 500 100 0 100";
-var cmdSwipeLeft = ADB+" shell input swipe 0 100 500 100";
+var cmdSwipeRight = ADB+" shell input swipe 500 300 100 300";
+var cmdSwipeLeft = ADB+" shell input swipe 100 300 500 300";
 
 var gLogP;
 
