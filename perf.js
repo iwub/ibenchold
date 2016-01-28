@@ -262,9 +262,11 @@ function profile_mode(){
 }
 
 (function main(cmd){
-
-
-	if(cmd.indexOf('cold_start') >= 0){
+	if(cmd === undefined){
+		console.log('--Usage--');
+		console.log('node perf.js [cold_start|warm_start|capture|toggle|switch]');			
+	}
+	else if(cmd.indexOf('cold_start') >= 0){
 		profile_launch_speed(true);
 	}
 	else if(cmd.indexOf('warm_start') >= 0){
