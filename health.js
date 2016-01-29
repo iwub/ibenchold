@@ -18,15 +18,15 @@ if(os.type().indexOf('Windows') >= 0){
 	cmdClearLog = cmdClearLog_WIN;
 }
 
-function check_property(label, property,cb){
+function check_property(label, property, hint, cb){
 	var cmd = ADB+" shell getprop "+property+">"+TMP_FILE;
 	cp.exec(cmd).on('exit',function(){
 		var content = fs.readFileSync(TMP_FILE).toString().trim();
-		cb(label, content);
+		cb(label, content, hint);
 	})
 }
 
-function check_dumpsys(label, property){
+function check_dumpsys(label){
 	var value;
 	DUMPSYS_INFO.forEach(function(v,i,a){
 		if(v.indexOf(label) >= 0){
@@ -41,23 +41,23 @@ function check_dumpsys(label, property){
 
 //For main
 function check_product(cb){
-	check_property("Product", "def.tctfw.brandMode.name", cb);
+	check_property("Product", "def.tctfw.brandMode.name", null, cb);
 }
 
 function check_baseline(cb){
-	check_property("Baseline", "gsm.version.baseband", cb);
+	check_property("Baseline", "gsm.version.baseband", null, cb);
 }
 
 function check_hw(cb){
-	check_property("Hardware", "ro.def.hardware.version", cb);
+	check_property("Hardware", "ro.def.hardware.version", null, cb);
 }
 
 function check_sw(cb){
-	check_property("Software", "ro.tct.sys.ver", cb);
+	check_property("Software", "ro.tct.sys.ver", null, cb);
 }
 
 function check_perf(cb){
-	check_property("KernelBuild", "ro.tct.kernelconfig", cb);
+	check_property("KernelBuild", "ro.tct.kernelconfig", "Performance", cb);
 }
 
 function check_apk(cb){
@@ -80,15 +80,15 @@ function check_apk(cb){
 
 //For Camera App
 function check_zsl(cb){
-	cb("ZSL", check_dumpsys("zsl"));
+	cb("ZSL", check_dumpsys("zsl"), "on");
 }
 
 function check_antibanding(cb){
-	cb("Anti-Banding", check_dumpsys("antibanding"));
+	cb("Anti-Banding", check_dumpsys("antibanding"), "auto");
 }
 
 function check_autoexposure(cb){
-	cb("Auto-Exposure", check_dumpsys("auto-exposure"));
+	cb("Auto-Exposure", check_dumpsys("auto-exposure"), "central-weight");
 }
 
 function check_picturesize(cb){
@@ -100,7 +100,7 @@ function check_previewsize(cb){
 }
 
 function check_face(cb){
-	cb("Face-Detection", check_dumpsys("face-detection"));
+	cb("Face-Detection", check_dumpsys("face-detection"), "on");
 }
 
 //For HAL
@@ -112,7 +112,7 @@ function check_hal_zsl(cb){
 	else {
 		result = "OFF"
 	}
-	cb("ZSL", result);
+	cb("ZSL", result, "ON");
 }
 
 function check_hal_histo(cb){
@@ -123,7 +123,7 @@ function check_hal_histo(cb){
 	else {
 		result = "OFF"
 	}
-	cb("Histogram", result);
+	cb("Histogram", result, "ON");
 }
 
 function check_hal_face(cb){
@@ -145,20 +145,20 @@ function check_hal_wnr(cb){
 	else {
 		result = "OFF"
 	}
-	cb("WNR", result);	
+	cb("WNR", result, "ON");	
 }
 
 function check_hal_focus(cb){
 	var result = parseInt(check_dumpsys("getFocusMode"));
 	var labels = [
-	    'CAM_FOCUS_MODE_OFF',
-    'CAM_FOCUS_MODE_AUTO',
-    'CAM_FOCUS_MODE_INFINITY',
-    'CAM_FOCUS_MODE_MACRO',
-    'CAM_FOCUS_MODE_FIXED',
-    'CAM_FOCUS_MODE_EDOF',
-    'CAM_FOCUS_MODE_CONTINOUS_VIDEO',
-    'CAM_FOCUS_MODE_CONTINOUS_PICTURE',
+	'OFF',
+    'AUTO',
+    'INFINITY',
+    'MACRO',
+    'FIXED',
+    'EDOF',
+    'CONTINOUS_VIDEO',
+    'CONTINOUS_PICTURE',
 	];
 	cb("Focus-Mode", labels[result]);
 }
@@ -166,21 +166,50 @@ function check_hal_focus(cb){
 function check_hal_antibanding(cb){
 	var result = parseInt(check_dumpsys("getAutoFlickerMode"));
 	var labels = [
-    'CAM_ANTIBANDING_MODE_OFF',
-    'CAM_ANTIBANDING_MODE_60HZ',
-    'CAM_ANTIBANDING_MODE_50HZ',
-    'CAM_ANTIBANDING_MODE_AUTO',
-    'CAM_ANTIBANDING_MODE_AUTO_50HZ',
-    'CAM_ANTIBANDING_MODE_AUTO_60HZ',
-    'CAM_ANTIBANDING_MODE_MAX'
+    'OFF',
+    '60HZ',
+    '50HZ',
+    'AUTO',
+    'AUTO_50HZ',
+    'AUTO_60HZ',
 	];
-	cb("Anti-Banding", labels[result]);
+	cb("Anti-Banding", labels[result], "AUTO");
+}
+
+//Check Debug
+function check_dbg_mobicat(cb){
+	check_property("EXIF Dump", "persist.camera.mobicat", "ISP+3A", function(label, content, hint){
+		var val = parseInt(content);
+
+		if(val == 3){
+			content = "ISP+3A";
+		}
+		else if(val == 2){
+			content = "3A";
+		}
+		else if(val == 1){
+			content = "ISP";
+		}
+		else {
+			content = "None";
+		}
+		cb(label, content, hint);
+	})
+}
+
+function check_dbg_dumpexif(cb){
+	check_property("3A Exif", "persist.camera.stats.debugexif", "3080192", cb);
 }
 
 
+function checkcb_main(key, value, hint){
+	if(hint && typeof(hint)=='string' && hint.length > 0){
+		console.log("["+key+"]"+"    "+value+" (="+hint+"?)");
+	}
+	else{
+		console.log("["+key+"]"+"    "+value);
+	}
 
-function checkcb_main(key, value){
-	console.log("["+key+"]"+"    "+value);
 	if(CHECK_LIST_MAIN.length>0){
 		(CHECK_LIST_MAIN.shift())(checkcb_main);
 	}
@@ -199,8 +228,14 @@ function check_main(){
 	}
 }
 
-function checkcb_camera_app(key, value){
-	console.log("["+key+"]"+"    "+value);
+function checkcb_camera_app(key, value, hint){
+	if(hint && typeof(hint)=='string' && hint.length > 0){
+		console.log("["+key+"]"+"    "+value+" (="+hint+"?)");
+	}
+	else{
+		console.log("["+key+"]"+"    "+value);
+	}
+
 	if(CHECK_LIST_CAMERA_APP.length>0){
 		(CHECK_LIST_CAMERA_APP.shift())(checkcb_camera_app);
 	}
@@ -236,17 +271,23 @@ function check_camera_app(){
 					(CHECK_LIST_CAMERA_APP.shift())(checkcb_camera_app);
 				}
 			});
-
-
 		}, 3000);
 	})
-
 }
 
-function checkcb_hal(key, value){
-	console.log("["+key+"]"+"    "+value);
+function checkcb_hal(key, value, hint){
+	if(hint && typeof(hint)=='string' && hint.length > 0){
+		console.log("["+key+"]"+"    "+value+" (="+hint+"?)");
+	}
+	else{
+		console.log("["+key+"]"+"    "+value);
+	}
+
 	if(CHECK_LIST_HAL.length>0){
 		(CHECK_LIST_HAL.shift())(checkcb_hal);
+	}
+	else{
+		check_dbg();
 	}
 }
 
@@ -256,8 +297,31 @@ function check_hal(){
 	if(CHECK_LIST_HAL.length>0){
 		(CHECK_LIST_HAL.shift())(checkcb_hal);
 	}		
+	else{
+		check_dbg();
+	}
 }
 
+function checkcb_dbg(key, value, hint){
+	if(hint && typeof(hint)=='string' && hint.length > 0){
+		console.log("["+key+"]"+"    "+value+" (="+hint+"?)");
+	}
+	else{
+		console.log("["+key+"]"+"    "+value);
+	}
+
+	if(CHECK_LIST_DEBUG.length>0){
+		(CHECK_LIST_DEBUG.shift())(checkcb_dbg);
+	}
+}
+
+function check_dbg(){
+	console.log("");
+	console.log("-----DBG_INFO-----");
+	if(CHECK_LIST_DEBUG.length>0){
+		(CHECK_LIST_DEBUG.shift())(checkcb_dbg);
+	}			
+}
 
 var CHECK_LIST_MAIN = [
 	check_product,
@@ -285,6 +349,11 @@ var CHECK_LIST_HAL = [
 	check_hal_antibanding,
 	check_hal_focus
 
+];
+
+var CHECK_LIST_DEBUG = [
+	check_dbg_mobicat,
+	check_dbg_dumpexif
 ];
 
 var DUMPSYS_INFO;
