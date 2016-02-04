@@ -13,7 +13,7 @@ ch.process([
 	},
 	{
 		"type":"adb",
-		"value":"setenforce 0", //Disable se-linux
+		"value":"shell setenforce 0", //Disable se-linux
 		"delay":0
 	}
 ], function(){
