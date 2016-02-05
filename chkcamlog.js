@@ -13,10 +13,12 @@ var BACKEND_TOKEN = [
 	"mm-camera"
 ];
 
-var metaData = [];
+// var metaData = [];
 
 function readFile(fileName){
-	return fs.readFileSync(fileName).toString().split("\r");
+	return fs.readFileSync(fileName).toString().split("\r").filter(function(x){
+		return (x.length>5);
+	});
 }
 
 function findPIDs(raw){
@@ -40,8 +42,6 @@ function findPIDs(raw){
 					if(ret.app.indexOf(pid)<0){
 						ret.app.push(pid);
 					}
-
-					metaData[j] = {'type': 'app', 'pid':pid, 'flag':[content[1]]}
 				}
 			}
 
@@ -52,8 +52,6 @@ function findPIDs(raw){
 					if(ret.hal.indexOf(pid)<0){
 						ret.hal.push(pid);
 					}
-
-					metaData[j] = {'type': 'hal', 'pid':pid, 'flag':[content[1]]}
 				}
 			}
 
@@ -64,20 +62,74 @@ function findPIDs(raw){
 					if(ret.backend.indexOf(pid)<0){
 						ret.backend.push(pid);
 					}
-
-					metaData[j] = {'type': 'backend', 'pid':pid, 'flag':[content[1]]}
 				}
 			}
 		}
 	});
-
 	return ret;
 }
 
-function printError(raw){
+function parse(raw, pids){
+	var metaData = [];
 
-	metaData.forEach(function(v,i,a){
-		if(v && (v.flag.indexOf('E')>=0)) {
+	console.log(pids);
+
+	raw.forEach(function(v,i,a){
+		//For app logs
+		for(var j=0; j<pids.app.length; j++){
+			if(v.match(new RegExp(pids.app[j]+"\\\)"))){
+				metaData[i] = ['app'];
+
+				var type = v.match(new RegExp(" ([A-Z])/"));
+				metaData[i].push(type[1]);
+
+				if(v.match(new RegExp("Show fatal error"))){
+					metaData[i].push('dialog');				
+				}
+
+			}
+		}
+
+		//For hal logs
+		for(var j=0; j<pids.hal.length; j++){
+			if(v.match(new RegExp(pids.hal[j]+"\\\)"))){
+				metaData[i] = ['hal'];
+
+				var type = v.match(new RegExp(" ([A-Z])/"));
+				metaData[i].push(type[1]);
+
+				if(v.match(new RegExp("KPI PERF"))){
+					metaData[i].push('perf');				
+				}
+
+				if(v.match(new RegExp("openCamera")) || v.match(new RegExp("closeCamera"))){
+					metaData[i].push('openclose');				
+				}			
+			}
+		}
+
+		//For imaging server logs
+		for(var j=0; j<pids.backend.length; j++){
+			if(v.match(new RegExp(pids.backend[j]+"\\\)"))){
+				metaData[i] = ['backend'];
+
+				var type = v.match(new RegExp(" ([A-Z])/"));
+				metaData[i].push(type[1]);
+
+				if(v.match(new RegExp("PDAF"))){
+					metaData[i].push('pdaf');				
+				}
+			}
+		}
+	})
+
+	return metaData;
+}
+
+
+function print(raw, meta){
+	 meta.forEach(function(v,i,a){
+		if(v && v.indexOf('backend')<0 && v.indexOf('openclose')>=0){
 			console.log(raw[i]);
 		}
 	})
@@ -88,7 +140,10 @@ function printError(raw){
 	var rawFile = readFile(fileName);
 	var pids = findPIDs(rawFile);
 
-	printError(rawFile);
+	var meta = parse(rawFile, pids);
+
+	print(rawFile, meta);
+	//printError(rawFile);
 	
 
 	// console.log("Camera App PIDs:"+appPID);
