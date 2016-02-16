@@ -23,6 +23,7 @@ var LAUNCH_COUNT = 3;
 var TOGGLE_COUNT = 3;
 var TAKE_PICTURE_COUNT = 5;
 var SWITCH_MODE_COUNT = 3;
+var INSTANT_CAPTURE_COUNT = 1;
 
 var CAMERA_OPEN_START_TOKEN = 'E PROFILE_OPEN_CAMERA';
 var CAEMRA_OPEN_END_TOKEN = 'PROFILE_FIRST_PREVIEW_FRAME';
@@ -31,7 +32,10 @@ var CAMERA_TAKE_PICTURE_START_TOKEN = 'PROFILE_TAKE_PICTURE';
 var CAMERA_TAKE_PICTURE_END_TOKEN = 'PROFILE_JPEG_CB';
 
 
-var CAMERA_PREVIEW_STOP_TOKEN = 'PROFILE_STOP_PREVIEW'
+var CAMERA_PREVIEW_STOP_TOKEN = 'PROFILE_STOP_PREVIEW';
+
+var CAMERA_INSTANT_CAPTURE_START_TOKEN = "CAM2PORT_InstantService: startId";
+var CAMERA_INSTANT_CAPTURE_END_TOKEN = "CAM2PORT_InstantService: setCameraState final state STOP";
 
 
 var cmdLaunchCamera = ADB+" shell am start com.tct.camera";
@@ -45,6 +49,8 @@ var cmdTakePicture = ADB+" shell input keyevent 24";
 var cmdToggle = ADB+" shell input tap 935 135";
 var cmdSwipeRight = ADB+" shell input swipe 500 300 100 300";
 var cmdSwipeLeft = ADB+" shell input swipe 100 300 500 300";
+
+var cmdInstantCapture = ADB+" shell input keyevent 276";
 
 var gLogP;
 
@@ -110,6 +116,16 @@ function perform_mode_switch(){
 		5000,
 		SWITCH_MODE_COUNT,
 		parse_mode);
+}
+
+function perform_instant_capture(){
+	perform_iteration(
+		cmdInstantCapture,
+		cmdInstantCapture,
+		1000,
+		0,
+		INSTANT_CAPTURE_COUNT,
+		parse_instant_capture);
 }
 
 function parse_log(path, token1, token2, label){
@@ -234,6 +250,14 @@ function parse_mode(path){
 		"--Time For Switch Mode--");
 }
 
+function parse_instant_capture(path){
+	parse_log(
+		path,
+		CAMERA_INSTANT_CAPTURE_START_TOKEN,
+		CAMERA_INSTANT_CAPTURE_END_TOKEN,
+		"--Time For Instant Capture--");
+}
+
 function start_test(callback){
 	cp.exec(cmdClearLog).on('exit', function(){ //Clear log
 		cp.exec(cmdClearLogcat).on('exit', function(){ //Clear logcat
@@ -274,16 +298,25 @@ function profile_mode(){
 	});	
 }
 
+function profile_boom_capture(){
+	start_test(function(){
+		setTimeout(perform_instant_capture, 1000);
+	});	
+}
+
 (function main(cmd){
 	if(cmd === undefined){
 		console.log('--Usage--');
-		console.log('node perf.js [cold_start|warm_start|capture|toggle|switch]');			
+		console.log('node perf.js [cold_start|warm_start|capture|toggle|switch|boom-capture]');			
 	}
 	else if(cmd.indexOf('cold_start') >= 0){
 		profile_launch_speed(true);
 	}
 	else if(cmd.indexOf('warm_start') >= 0){
 		profile_launch_speed(false);
+	}
+	else if(cmd.indexOf('boom-capture') >= 0){
+		profile_boom_capture();
 	}
 	else if(cmd.indexOf('capture') >= 0){
 		profile_take_picture();
@@ -296,6 +329,6 @@ function profile_mode(){
 	}
 	else{
 		console.log('--Usage--');
-		console.log('node perf.js [cold_start|warm_start|capture|toggle|switch]');			
+		console.log('node perf.js [cold_start|warm_start|capture|toggle|switch|boom-capture]');			
 	}
 })(process.argv[2]);
