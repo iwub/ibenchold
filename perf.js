@@ -74,7 +74,7 @@ function perform_iteration(cmds, delays, count, cb){
 			perform_action(actCmds.shift(), actDelays.shift(), action_callback);
 		}
 		else if(count>0){
-			perform_iteration(cmds, delays, count-1, cb);
+			perform_iteration(cmds, delays, count, cb);
 		}
 		else if(cb && typeof(cb)==='function'){
 			setTimeout(function(){
@@ -116,7 +116,7 @@ function perform_toggle_back_front(){
 function perform_mode_switch(){
 	perform_iteration(
 		[cmdSwipeRight, cmdSwipeLeft],
-		[4000,4000],
+		[3000,3000],
 		SWITCH_MODE_COUNT,
 		parse_mode);
 }
@@ -159,7 +159,7 @@ function parse_log(path, token1, token2, label){
 			var curr_time = parseInt(time[1])*60*60*1000+parseInt(time[2])*60*1000+parseInt(time[3])*1000+parseInt(time[4]);
 			//console.log(time);
 			if(VERBOSE){
-				console.log("Find end log at line"+i);
+				console.log("Find end log at line "+i);
 			}
 			end_log.push(curr_time);
 		}
@@ -169,7 +169,7 @@ function parse_log(path, token1, token2, label){
 	var r_end_log = [];
 	var on_start = true;
 
-	while(start_log.length>0 && end_log.length>0){
+	while(end_log.length>0){
 		if(on_start){
 			//trim end
 			while(start_log[0]>end_log[0] && end_log.length>0){
