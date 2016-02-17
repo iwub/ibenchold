@@ -8,7 +8,7 @@ var TMP_FILE = "/tmp/~camLaunchLog.txt";
 var cmdClearLog = "rm -rf "+TMP_FILE;
 
 var ADB_WIN = "adb.exe";
-var TMP_FILE_WIN = 'D:/camLaunchLog.txt';
+var TMP_FILE_WIN = 'camLaunchLog.txt';
 var cmdClearLog_WIN = "del "+TMP_FILE;
 
 if(os.type().indexOf('Windows') >= 0){
@@ -54,76 +54,77 @@ var cmdInstantCapture = ADB+" shell input keyevent 276";
 
 var gLogP;
 
-function perform_iteration(cmd1, cmd2, lat1, lat2, count, cb){
-	cp.exec(cmd1);
-
+function perform_action(cmd, delay, cb){
 	setTimeout(function(){
-		if (cmd2 && cmd2.length > 0){
-			cp.exec(cmd2);
+		cp.exec(cmd);
+		if(cb && typeof(cb)==='function'){
+			cb();
 		}
+	}, delay);
+}
 
-		count--;
-		if (count>0){
-			setTimeout(function(){perform_iteration(cmd1, cmd2, lat1, lat2, count, cb);}, lat1);
+function perform_iteration(cmds, delays, count, cb){
+	var actCmds = cmds.slice(0);
+	var actDelays = delays.slice(0);
+
+	count--;
+
+	function action_callback(){
+		if(actCmds.length>0){
+			perform_action(actCmds.shift(), actDelays.shift(), action_callback);
 		}
-		else{
+		else if(count>0){
+			perform_iteration(cmds, delays, count-1, cb);
+		}
+		else if(cb && typeof(cb)==='function'){
 			setTimeout(function(){
 				cb(TMP_FILE);
 				var child = cp.exec(cmdExitCameraHard);
 				child.on('exit', function(){process.exit()});				
-			},2000);
+			},3000);
 		}
+	}
 
-	}, lat2);
+	perform_action(actCmds.shift(), actDelays.shift(), action_callback);
 }
 
 
 function perform_launch_iteration(hard){
 	perform_iteration(
-		cmdLaunchCamera, 
-		hard?cmdExitCameraHard:cmdExitCameraSoft, 
-		3000,
-		2000,
+		[cmdLaunchCamera, hard?cmdExitCameraHard:cmdExitCameraSoft],
+		[3000,2000],
 		LAUNCH_COUNT, 
 		parse_launch_time);
 }
 
 function perform_take_picture(){
 	perform_iteration(
-		cmdTakePicture,
-		null,
-		2000,
-		0,
+		[cmdTakePicture],
+		[2000],
 		TAKE_PICTURE_COUNT,
 		parse_take_picture);
 }
 
 function perform_toggle_back_front(){
 	perform_iteration(
-		cmdToggle,
-		cmdToggle,
-		4000,
-		4000,
+		[cmdToggle],
+		[3000],
 		TOGGLE_COUNT,
 		parse_toggle);
 }
 
 function perform_mode_switch(){
 	perform_iteration(
-		cmdSwipeRight,
-		cmdSwipeLeft,
-		5000,
-		5000,
+		[cmdSwipeRight, cmdSwipeLeft],
+		[4000,4000],
 		SWITCH_MODE_COUNT,
 		parse_mode);
 }
 
 function perform_instant_capture(){
 	perform_iteration(
-		cmdInstantCapture,
-		cmdInstantCapture,
-		1000,
-		0,
+		[cmdInstantCapture, cmdInstantCapture],
+		[1000,0],
 		INSTANT_CAPTURE_COUNT,
 		parse_instant_capture);
 }
@@ -307,7 +308,7 @@ function profile_boom_capture(){
 (function main(cmd){
 	if(cmd === undefined){
 		console.log('--Usage--');
-		console.log('node perf.js [cold_start|warm_start|capture|toggle|switch|boom-capture]');			
+		console.log('node perf.js [cold_start|warm_start|capture|toggle|switch|boom_capture]');			
 	}
 	else if(cmd.indexOf('cold_start') >= 0){
 		profile_launch_speed(true);
@@ -315,7 +316,7 @@ function profile_boom_capture(){
 	else if(cmd.indexOf('warm_start') >= 0){
 		profile_launch_speed(false);
 	}
-	else if(cmd.indexOf('boom-capture') >= 0){
+	else if(cmd.indexOf('boom_capture') >= 0){
 		profile_boom_capture();
 	}
 	else if(cmd.indexOf('capture') >= 0){
@@ -329,6 +330,6 @@ function profile_boom_capture(){
 	}
 	else{
 		console.log('--Usage--');
-		console.log('node perf.js [cold_start|warm_start|capture|toggle|switch|boom-capture]');			
+		console.log('node perf.js [cold_start|warm_start|capture|toggle|switch|boom_capture]');			
 	}
 })(process.argv[2]);
