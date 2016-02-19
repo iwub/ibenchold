@@ -17,7 +17,7 @@ if(os.type().indexOf('Windows') >= 0){
 	cmdClearLog = cmdClearLog_WIN;
 }
 
-var VERBOSE = false;
+var VERBOSE = true;
 
 var LAUNCH_COUNT = 3;
 var TOGGLE_COUNT = 3;
