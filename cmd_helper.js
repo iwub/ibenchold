@@ -18,9 +18,9 @@ if(os.type().indexOf('Windows') >= 0){
 	TMP_FILE = TMP_FILE_WIN;
 }
 
-var VERBOSE = false;
+var VERBOSE = true;
 
-var UBUNTU_14_04_TRICK = true;
+var UBUNTU_14_04_TRICK = false;
 
 var cmd_helper = {};
 
@@ -40,9 +40,9 @@ cmd_helper._adbQuick = function(cmd){
 
 	var ret;
 
-	while(cmd.length>0){
-		ret = cp.exec(ADB+" "+cmd.shift());
-	}
+	cmd.forEach(function(v,i,a){
+		ret = cp.exec(ADB+" "+v);
+	});
 
 	return ret;
 }

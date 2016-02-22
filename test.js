@@ -10,4 +10,4 @@ actions.addTask('test_switch_mode', 1);
 actions.addTask('test_switch_camera', 2);
 actions.addTask('test_capture',3);
 
-//actions.addTask('test_instant_capture', 3);
+actions.addTask('test_instant_capture', 3);
