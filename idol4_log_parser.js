@@ -95,7 +95,7 @@ idol4_log_parser._parse = function(content, token1, token2, print_label){
 		console.log(r_end_log);
 	}
 
-	console.log(print_label);
+	console.log("\r\n"+print_label);
 	var total = 0;
 	r_end_log.forEach(function(v,i,a){
 		console.log((r_end_log[i] - r_start_log[i]) + ' ms');

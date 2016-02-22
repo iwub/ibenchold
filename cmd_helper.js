@@ -18,7 +18,7 @@ if(os.type().indexOf('Windows') >= 0){
 	TMP_FILE = TMP_FILE_WIN;
 }
 
-var VERBOSE = true;
+var VERBOSE = false;
 
 var UBUNTU_14_04_TRICK = false;
 
