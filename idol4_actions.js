@@ -201,6 +201,9 @@ idol4_actions.next = function(){
 		case 'test_capture':
 			inst._testCapture(entry.param, entry.ret);
 			break;
+		case 'test_burst_capture':
+			inst._testBurstCapture(entry.ret); //Only test once
+			break;			
 		case 'test_instant_capture':
 			inst._testInstantCapture(entry.param, entry.ret);
 			break;
@@ -423,7 +426,7 @@ idol4_actions._testCapture = function (time, cb){
 idol4_actions._testInstantCapture = function (time, cb){
 	var inst = this;
 
-	var scenario = [ACT_CLEAR_LOG, ACT_START_LOG];
+	var scenario = [ACT_LAUNCH_CAMERA_APK, ACT_CLEAR_LOG, ACT_START_LOG];
 
 	while(time-- > 0){
 		scenario.push(ACT_PRESS_POWERKEY)
@@ -434,6 +437,26 @@ idol4_actions._testInstantCapture = function (time, cb){
 	ch.process(scenario, function(){
 
 		parser.parseInstantCapture(ch.readLog());
+
+		if(cb && typeof(cb) === 'function'){
+			cb();			
+		}
+		inst.next();
+	})
+}
+
+idol4_actions._testBurstCapture = function (cb){
+	var inst = this;
+
+	var scenario = [ACT_CLEAR_LOG, ACT_START_LOG, ACT_LAUNCH_CAMERA_APK];
+
+	scenario.push(ACT_BURST_CAPTURE)
+
+	scenario.push(ACT_STOP_LOG);
+
+	ch.process(scenario, function(){
+
+		parser.parseBurstCapture(ch.readLog());
 
 		if(cb && typeof(cb) === 'function'){
 			cb();			
