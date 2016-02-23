@@ -108,6 +108,18 @@ var ACT_BOOM_KEY = {
 	"delay": 2800
 };
 
+var ACT_BURST_CAPTURE = {
+	"type":"adb",
+	"value":"shell input swipe 540 1625 540 1625 4000",
+	"delay":2000		
+}
+
+var ACT_START_VIDEO_RECORD = {
+	"type":"adb",
+	"value":"shell input tap 946 1650",
+	"delay":2000	
+}
+
 
 var SCENARIO_ROOT_IDOL4 = [ACT_LAUNCH_ROOT_APK, ACT_TAP_ROOT_BUTTON, ACT_DISABLE_SELINUX];
 
