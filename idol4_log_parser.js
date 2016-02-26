@@ -12,8 +12,8 @@ var CAMERA_TAKE_PICTURE_END_TOKEN = 'PROFILE_JPEG_CB';
 
 var CAMERA_PREVIEW_STOP_TOKEN = 'PROFILE_STOP_PREVIEW';
 
-var CAMERA_INSTANT_CAPTURE_START_TOKEN = "CAM2PORT_InstantService: setCameraState from STOP to PREPARE";
-var CAMERA_INSTANT_CAPTURE_END_TOKEN = "CAM2PORT_InstantService: setCameraState final state STOP";
+var CAMERA_INSTANT_CAPTURE_START_TOKEN = "instant capture kpi, Try start instantCaptureHelper";
+var CAMERA_INSTANT_CAPTURE_END_TOKEN = "instant capture kpi, onPictureTaken";
 
 
 
