@@ -15,7 +15,13 @@ var CAMERA_PREVIEW_STOP_TOKEN = 'PROFILE_STOP_PREVIEW';
 var CAMERA_INSTANT_CAPTURE_START_TOKEN = "instant capture kpi, Try start instantCaptureHelper";
 var CAMERA_INSTANT_CAPTURE_END_TOKEN = "instant capture kpi, onPictureTaken";
 
+var CAMERA_APK_MODE_SWITCH_START_TOKEN = 'KPI start mode selecting';
+var CAEMRA_APK_MODE_SWITCH_END_TOKEN = 'KPI on surfaceTexture updated';
 
+var CAMERA_APK_CAPTURE_START_TOKEN = 'KPI shutter click';
+var CAMERA_APK_CAPTURE_END_TOKEN = 'onPictureTaken, camera state is';
+
+var CAMREA_APK_BURST_TOKEN = 'OnPictureTaken in burst';
 
 idol4_log_parser._parse = function(content, token1, token2, print_label){
 
@@ -134,15 +140,18 @@ idol4_log_parser.parseSwitchMode = function(content){
 }
 
 idol4_log_parser.parseSwitchCamera = function(content){
-	this._parse(content, CAMERA_PREVIEW_STOP_TOKEN, CAEMRA_OPEN_END_TOKEN, "--Time For Toggle Camera--");
+	this._parse(content, CAMERA_PREVIEW_STOP_TOKEN, CAEMRA_OPEN_END_TOKEN, "--Time For Toggle Camera(HAL)--");
+	this._parse(content, CAMERA_APK_MODE_SWITCH_START_TOKEN, CAEMRA_APK_MODE_SWITCH_END_TOKEN, "--Time For Toggle Camera(APK)--");)
 }
 
 idol4_log_parser.parseTakePicture = function(content){
-	this._parse(content, CAMERA_TAKE_PICTURE_START_TOKEN, CAMERA_TAKE_PICTURE_END_TOKEN, "--Time For Take Picture--");
+	this._parse(content, CAMERA_TAKE_PICTURE_START_TOKEN, CAMERA_TAKE_PICTURE_END_TOKEN, "--Time For Take Picture(HAL)--");
+	this._parse(content, CAMERA_APK_CAPTURE_START_TOKEN, CAMERA_APK_CAPTURE_END_TOKEN, "--Time For Take Picture(APK)--");	
 }
 
 idol4_log_parser.parseBurstCapture = function(content){
-	this._parse(content, CAMERA_TAKE_PICTURE_START_TOKEN, null, "--Time-lapse between Burst Capture--");
+	this._parse(content, CAMERA_TAKE_PICTURE_START_TOKEN, null, "--Time-lapse between Burst Capture(HAL)--");
+	this._parse(content, CAMREA_APK_BURST_TOKEN, null, "--Time-lapse between Burst Capture(APK)--");
 }
 
 idol4_log_parser.parseInstantCapture = function(content){
