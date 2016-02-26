@@ -141,7 +141,7 @@ idol4_log_parser.parseSwitchMode = function(content){
 
 idol4_log_parser.parseSwitchCamera = function(content){
 	this._parse(content, CAMERA_PREVIEW_STOP_TOKEN, CAEMRA_OPEN_END_TOKEN, "--Time For Toggle Camera(HAL)--");
-	this._parse(content, CAMERA_APK_MODE_SWITCH_START_TOKEN, CAEMRA_APK_MODE_SWITCH_END_TOKEN, "--Time For Toggle Camera(APK)--");)
+	this._parse(content, CAMERA_APK_MODE_SWITCH_START_TOKEN, CAEMRA_APK_MODE_SWITCH_END_TOKEN, "--Time For Toggle Camera(APK)--");
 }
 
 idol4_log_parser.parseTakePicture = function(content){
