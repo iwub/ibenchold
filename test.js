@@ -1,6 +1,8 @@
 var actions = require('./idol4_actions.js');
 var parser = require('./idol4_log_parser.js');
 
+actions.addTask('set_fhd');
+
 actions.addTask('lighton');
 actions.addTask('unlock');
 

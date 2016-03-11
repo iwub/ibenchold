@@ -15,6 +15,9 @@ var CAMERA_PREVIEW_STOP_TOKEN = 'PROFILE_STOP_PREVIEW';
 var CAMERA_INSTANT_CAPTURE_START_TOKEN = "instant capture kpi, Try start instantCaptureHelper";
 var CAMERA_INSTANT_CAPTURE_END_TOKEN = "instant capture kpi, onPictureTaken";
 
+var CAMERA_INSTANT_CAPTURE_HAL_START_TOKEN = CAMERA_OPEN_START_TOKEN;
+var CAMERA_INSTANT_CAPTURE_HAL_END_TOKEN = CAMERA_TAKE_PICTURE_END_TOKEN;
+
 var CAMERA_APK_MODE_SWITCH_START_TOKEN = 'KPI start mode selecting';
 var CAEMRA_APK_MODE_SWITCH_END_TOKEN = 'KPI on surfaceTexture updated';
 
@@ -156,6 +159,7 @@ idol4_log_parser.parseBurstCapture = function(content){
 
 idol4_log_parser.parseInstantCapture = function(content){
 	this._parse(content, CAMERA_INSTANT_CAPTURE_START_TOKEN, CAMERA_INSTANT_CAPTURE_END_TOKEN, "--Time For Instant Capture--");
+	this._parse(content, CAMERA_INSTANT_CAPTURE_HAL_START_TOKEN, CAMERA_INSTANT_CAPTURE_HAL_END_TOKEN, "--Time For Instant Capture(HAL)--");
 }
 
 module.exports = idol4_log_parser;

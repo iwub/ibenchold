@@ -17,13 +17,13 @@ var ACT_LAUNCH_ROOT_APK = {
 var ACT_TAP_ROOT_BUTTON = {
 	"type":"adb",
 	"value":"shell input tap  175 332", //Tap root
-	"delay":500
+	"delay":1500
 };
 
 var ACT_DISABLE_SELINUX = 	{
 	"type":"adb",
-	"value":"shell setenforce 0", //Disable se-linux
-	"delay":0
+	"value":" shell setenforce  0", //Disable se-linux
+	"delay":100
 };
 
 var ACT_READ_BACKLIGT = {
@@ -90,11 +90,20 @@ var ACT_SWIPE_RIGHT = {
 	"delay":2000	
 };
 
-var ACT_TOGGLE_FRONT_BACK = {
+
+var ACT_TOGGLE_FRONT_BACK_FHD = {
 	"type":"adb",
 	"value":"shell input tap 960 126",
 	"delay":2200	
 };
+
+var ACT_TOGGLE_FRONT_BACK_2K = {
+	"type":"adb",
+	"value":"shell input tap 1360 95",
+	"delay":2200	
+};
+
+var ACT_TOGGLE_FRONT_BACK = ACT_TOGGLE_FRONT_BACK_FHD;
 
 var ACT_TAKE_PICTURE = {
 	"type":"adb",
@@ -108,11 +117,19 @@ var ACT_BOOM_KEY = {
 	"delay": 2800
 };
 
-var ACT_BURST_CAPTURE = {
+var ACT_BURST_CAPTURE_FHD = {
 	"type":"adb",
 	"value":"shell input swipe 540 1625 540 1625 4000",
 	"delay":2000		
 }
+
+var ACT_BURST_CAPTURE_2K = {
+	"type":"adb",
+	"value":"shell input swipe 766 2161 766 2161 4000",
+	"delay":2000		
+}
+
+var ACT_BURST_CAPTURE = ACT_BURST_CAPTURE_FHD;
 
 var ACT_START_VIDEO_RECORD = {
 	"type":"adb",
@@ -206,6 +223,16 @@ idol4_actions.next = function(){
 			break;			
 		case 'test_instant_capture':
 			inst._testInstantCapture(entry.param, entry.ret);
+			break;
+		case "set_2k":
+			ACT_BURST_CAPTURE = ACT_BURST_CAPTURE_2K
+			ACT_TOGGLE_FRONT_BACK = ACT_TOGGLE_FRONT_BACK_2K;
+			inst.next();
+			break;
+		case "set_fhd":
+			ACT_BURST_CAPTURE = ACT_BURST_CAPTURE_FHD;
+			ACT_TOGGLE_FRONT_BACK = ACT_TOGGLE_FRONT_BACK_FHD;
+			inst.next();
 			break;
 		default:
 			break;
