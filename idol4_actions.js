@@ -234,6 +234,12 @@ idol4_actions.next = function(){
 			ACT_TOGGLE_FRONT_BACK = ACT_TOGGLE_FRONT_BACK_FHD;
 			inst.next();
 			break;
+		case "set_mtk":
+			parser.set_platform("mtk");
+			inst.next();
+		case "set_qcom":
+			parser.set_platform("qcom");
+			inst.next();
 		default:
 			break;
 	}
