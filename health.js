@@ -249,6 +249,7 @@ function check_camera_app(){
 	console.log("-----Camera App-----");
 
 	var startCamera = ADB+" shell am start "+APK_PKG;
+
 	cp.exec(startCamera).on('exit', function(){ //start camera
 		setTimeout(function(){
 			var paramDump = ADB+" shell dumpsys media.camera >"+TMP_FILE;
@@ -264,6 +265,13 @@ function check_camera_app(){
 					}
 					else{
 						DUMPSYS_INFO.shift();
+					}
+				}
+
+				for(var ii=0; ii<DUMPSYS_INFO.length; ii++){
+					if(DUMPSYS_INFO[ii].indexOf('API shim')>=0){
+						DUMPSYS_INFO = DUMPSYS_INFO.slice(0,ii-1);
+						break;
 					}
 				}
 
