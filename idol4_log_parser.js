@@ -3,9 +3,6 @@ var idol4_log_parser = {};
 
 var VERBOSE = false;
 
-
-var UNKNOWN_TOKEN = '--TO BE CONFIRMED--';
-
 /*Common*/
 var CAMERA_OPEN_TOKEN_HAL_QCOM = 'E PROFILE_OPEN_CAMERA';
 var CAMERA_PREVIEW_STOP_TOKEN_HAL_QCOM = 'PROFILE_STOP_PREVIEW';
@@ -13,11 +10,12 @@ var CAMERA_PREVIEW_FIRST_FRAME_HAL_QCOM = 'PROFILE_FIRST_PREVIEW_FRAME';
 var CAMERA_TAKE_PICTURE_TOKEN_HAL_QCOM = 'PROFILE_TAKE_PICTURE';
 var CAMERA_TAKE_PICTURE_DONE_HAL_QCOM = 'stop data proc';
 
-var CAMERA_OPEN_TOKEN_HAL_MTK = '[createCam1Device] + OpenID:';
-var CAMERA_PREVIEW_STOP_TOKEN_HAL_MTK = '[Cam1DeviceBase::stopPreview]';
-var CAMERA_PREVIEW_FIRST_FRAME_HAL_MTK = '[Cam1DeviceBase::startPreview]';
-var CAMERA_TAKE_PICTURE_TOKEN_HAL_MTK = '[Cam1DeviceBase::takePicture]';
-var CAMERA_TAKE_PICTURE_DONE_HAL_MTK = '(ZSD)[~ImpShot]';
+var CAMERA_OPEN_TOKEN_HAL_MTK = '[createCam1Device] +';
+var CAMERA_PREVIEW_STOP_TOKEN_HAL_MTK = '[Cam1DeviceBase::stopPreview] -';
+var CAMERA_PREVIEW_FIRST_FRAME_HAL_MTK = '[Cam1DeviceBase::startPreview] +';
+var CAMERA_TAKE_PICTURE_TOKEN_HAL_MTK = '[Cam1DeviceBase::takePicture] +';
+var CAMERA_TAKE_PICTURE_DONE_HAL_MTK = '[handleJpegData] -';
+var CAMERA_OPEN_END_TOKEN_HAL_MTK = '[createCam1Device] -';
 
 /*Camera Launch*/
 var CAMERA_OPEN_COLD_START_TOKEN = "onCreate CameraApplication";
@@ -180,9 +178,16 @@ idol4_log_parser._parse = function(content, token1, token2, print_label){
 }
 
 idol4_log_parser.set_platform = function(plat) {
+    if (VERBOSE){
+        console.log("set platform: " + plat);
+    }
+
 	if (plat.indexOf('mtk') >= 0){
+        CAMREA_BURST_TOKEN = '[MtLongshotPictureCallback.doPictureTaken]';
  		CAMERA_OPEN_START_TOKEN_HAL = CAMERA_OPEN_TOKEN_HAL_MTK;
  		CAMERA_OPEN_END_TOKEN_HAL = CAMERA_PREVIEW_FIRST_FRAME_HAL_MTK;
+
+        CAMERA_OPEN_END_TOKEN = CAMERA_OPEN_END_TOKEN_HAL;
 
 		CAMERA_MODE_SWITCH_START_TOKEN_HAL = CAMERA_PREVIEW_STOP_TOKEN_HAL_MTK;
 		CAMERA_MODE_SWITCH_END_TOKEN_HAL = CAMERA_PREVIEW_FIRST_FRAME_HAL_MTK;
@@ -197,7 +202,6 @@ idol4_log_parser.set_platform = function(plat) {
 
 		CAMERA_INSTANT_CAPTURE_START_TOKEN_HAL = CAMERA_OPEN_TOKEN_HAL_MTK;
 		CAMERA_INSTANT_CAPTURE_END_TOKEN_HAL = CAMERA_TAKE_PICTURE_DONE_HAL_MTK;
-
 	}
 	else {
  		CAMERA_OPEN_START_TOKEN_HAL = CAMERA_OPEN_TOKEN_HAL_QCOM;

@@ -154,6 +154,7 @@ function parse_log(path, token1, token2, label){
 			if(VERBOSE){
 				console.log("Find start log at line "+i);
 			}
+            console.log(curr_time);
 			start_log.push(curr_time);
 		}	
 		else if(v.indexOf(token2) > 0){

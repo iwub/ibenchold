@@ -237,9 +237,11 @@ idol4_actions.next = function(){
 		case "set_mtk":
 			parser.set_platform("mtk");
 			inst.next();
+            break;
 		case "set_qcom":
 			parser.set_platform("qcom");
 			inst.next();
+            break;
 		default:
 			break;
 	}
